@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://cdn.bootcss.com/echarts/4.2.1-rc1/echarts.min.js"></script>
+    <script src="http://echarts.baidu.com/build/dist/echarts.js"></script>
+  <style>
+      .rig{
+          margin-top: 15px;
+          float: right;
+          margin-right: 200px;
+      }
+      .scatter{
+          margin-top: 20px;
+          width: 500px;
+          height:350px;
+          display:block;
+      }
+      #main{
+          width: 550px;
+          height:620px;
+          display:inline-block;
+      }
+      .cloud{
+           width: 400px;
+          height:200px;
+          display:block;
+          background-color:#00FFFF;
+      }
+
+  </style>
+</head>
+<body>
+    <div>
+        <div id="main"></div>
+        <div class="rig">
+            <div class="cloud" >
+                <div>
+                 <img src="data:image/png;base64,{{ciyunimage|safe}}" style="width:400px;height: 200px" />
+                    </div>
+            </div>
+            <div id="scatter" class='scatter'>
+
+        </div>
+        </div>
+
+    </div>
+    <!--柱形图-->
+ <script type="text/javascript">
+     var dataAxis = {{list_username|safe}};
+
+var data = {{list_money|safe}};
+var yMax = 2500;
+var dataShadow = [];
+
+for (var i = 0; i < data.length; i++) {
+    dataShadow.push(yMax);
+}
+
+option = {
+    title: {
+        text: '冉冉应援top榜',
+        subtext: "{{dictproject.title|safe}}",
+    },
+    xAxis: {
+        data: dataAxis,
+
+        type: 'category',
+
+        axisLabel: {
+//            inside: true,
+            textStyle: {
+                color: '#006400'
+            },
+            'interval':0,
+             formatter: function (value) {
+            return value.split("").join("\n")
+        },
+
+        },
+        axisTick: {
+            show: false
+        },
+        axisLine: {
+            show: false
+        },
+        z: 10
+    },
+    yAxis: {
+        axisLine: {
+            show: false
+        },
+        axisTick: {
+            show: false
+        },
+        axisLabel: {
+            textStyle: {
+                color: '#999'
+            }
+        }
+    },
+    dataZoom: [
+        {
+            type: 'inside'
+        }
+    ],
+    series: [
+        { // For shadow
+            type: 'bar',
+            itemStyle: {
+                color: 'rgba(0,0,0,0.05)'
+            },
+            barGap: '-100%',
+            barCategoryGap: '40%',
+            data: dataShadow,
+            animation: false
+        },
+        {
+            type: 'bar',
+            itemStyle: {
+
+                color: new echarts.graphic.LinearGradient(
+                    0, 0, 0, 1,
+                    [
+                        {offset: 0, color: '#83bff6'},
+                        {offset: 0.5, color: '#188df0'},
+                        {offset: 1, color: '#188df0'}
+                    ]
+                ),
+
+            },
+            emphasis: {
+                itemStyle: {
+                    color: new echarts.graphic.LinearGradient(
+                        0, 0, 0, 1,
+                        [
+                            {offset: 0, color: '#2378f7'},
+                            {offset: 0.7, color: '#2378f7'},
+                            {offset: 1, color: '#83bff6'}
+                        ]
+                    )
+                }
+            },
+            data: data
+        }
+    ]
+};
+
+// Enable data zoom when user click bar.
+var zoomSize = 6;
+ var myChart = echarts.init(document.getElementById('main'));
+myChart.on('click', function (params) {
+    console.log(dataAxis[Math.max(params.dataIndex - zoomSize / 2, 0)]);
+    myChart.dispatchAction({
+        type: 'dataZoom',
+        startValue: dataAxis[Math.max(params.dataIndex - zoomSize / 2, 0)],
+        endValue: dataAxis[Math.min(params.dataIndex + zoomSize / 2, data.length - 1)]
+    });
+});
+  myChart.setOption(option);
+    </script>
+    <!--散点图-->
+<script type="text/javascript">
+    var myChart = echarts.init(document.getElementById('scatter'));
+    var dataBJ =  {{all|safe}};
+
+var schema = [
+    {name: 'date', index: 0, text: '日'},
+    {name: 'AQIindex', index: 1, text: '粉丝应援图'},
+
+];
+
+
+var itemStyle = {
+    opacity: 0.8,
+    shadowBlur: 10,
+    shadowOffsetX: 0,
+    shadowOffsetY: 0,
+    shadowColor: 'rgba(0, 0, 0, 0.5)'
+};
+
+option = {
+    backgroundColor: '#404a59',
+    color: [
+        '#dd4444', '#fec42c', '#80F1BE'
+    ],
+    legend: {
+        top: 10,
+        data: ["总金额:{{dictproject.current|safe}}"],
+        textStyle: {
+            color: '#fff',
+            fontSize: 16
+        }
+    },
+    grid: {
+        left: '10%',
+        right: 150,
+        top: '18%',
+        bottom: '10%'
+    },
+    tooltip: {
+        padding: 10,
+        backgroundColor: '#87CEEB',
+        borderColor: '#777',
+        borderWidth: 1,
+        formatter: function (obj) {
+            var value = obj.value;
+            return '<div style="border-bottom: 1px solid rgba(255,255,255,.3); font-size: 18px;padding-bottom: 7px;margin-bottom: 7px">'
+                + '粉丝：'
+                + value[2]
+                + '</div>'
+                + schema[1].text + '：' + value[1] + '<br>'
+
+        }
+    },
+    xAxis: {
+        type: 'value',
+
+        nameGap: 16,
+        nameTextStyle: {
+            color: '#fff',
+            fontSize: 14
+        },
+        max: 40,
+        splitLine: {
+            show: false
+        },
+        axisLine: {
+            lineStyle: {
+                color: '#eee'
+            }
+        }
+    },
+    yAxis: {
+        type: 'value',
+        name: '粉丝应援图',
+        nameLocation: 'end',
+        nameGap: 20,
+        nameTextStyle: {
+            color: '#fff',
+            fontSize: 16
+        },
+        axisLine: {
+            lineStyle: {
+                color: '#eee'
+            }
+        },
+        splitLine: {
+            show: false
+        }
+    },
+    visualMap: [
+        {
+            left: 'right',
+            top: '-100%',
+            dimension: 1,
+            min: 0,
+            max: 250,
+
+            precision: 0.1,
+
+            textGap: 30,
+            textStyle: {
+                color: '#fff'
+            },
+            inRange: {
+                symbolSize: [10, 30]
+            },
+            outOfRange: {
+                symbolSize: [10, 30],
+                color: ['rgba(255,255,255,.2)']
+            },
+            controller: {
+                inRange: {
+                    color: ['#c23531']
+                },
+                outOfRange: {
+                    color: ['#444']
+                }
+            }
+        },
+        {
+            left: 'right',
+            bottom: '5%',
+            dimension: 1,
+            min: 0,
+            max: 2000,
+            itemHeight: 200,
+
+            precision: 0.1,
+            text: ['明暗：贡献量'],
+            textGap: 30,
+            textStyle: {
+                color: '#fff'
+            },
+            inRange: {
+                colorLightness: [1, 0.5]
+            },
+            outOfRange: {
+                color: ['rgba(255,255,255,.2)']
+            },
+            controller: {
+                inRange: {
+                    color: ['#c23531']
+                },
+                outOfRange: {
+                    color: ['#444']
+                }
+            }
+        }
+    ],
+    series: [
+        {
+            name: "总金额:{{dictproject.current|safe}}",
+            type: 'scatter',
+            itemStyle: itemStyle,
+            data: dataBJ
+        },
+
+    ]
+};
+ myChart.setOption(option);
+</script>
+</body>
+</html>
